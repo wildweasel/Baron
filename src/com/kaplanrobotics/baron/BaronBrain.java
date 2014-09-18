@@ -9,7 +9,6 @@ public class BaronBrain implements Runnable{
 	Baron baron;
 	
 	long lastTimeMillis;
-	private volatile boolean running;
 	private volatile boolean paused = true;
 		
 	// Track world
@@ -17,7 +16,6 @@ public class BaronBrain implements Runnable{
 	BaronBrain(Baron baron){
 		baron.publishMessage(TAG,"BaronBrain()");
 		this.baron = baron;
-		running = true;
 		lastTimeMillis = System.currentTimeMillis();
 	}
 	
@@ -33,7 +31,6 @@ public class BaronBrain implements Runnable{
 	
 	public void destroy(){
 		baron.publishMessage(TAG,"destroy()");
-		running = false;
 	}
 	
 	public void odometeryMessage() {
@@ -48,10 +45,10 @@ public class BaronBrain implements Runnable{
 
 	@Override
 	public void run() {
+		while(!Thread.currentThread().isInterrupted()){
 
-		while(running){
-			
 			if(!paused && System.currentTimeMillis() - lastTimeMillis >= 1000/INSTRUCTIONS_PER_SEC){
+				baron.publishMessage(TAG,"run() - issue command!");
 				issueDriveCommand();
 				lastTimeMillis = System.currentTimeMillis();
 			}

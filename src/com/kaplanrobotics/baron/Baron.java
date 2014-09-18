@@ -44,19 +44,9 @@ public class Baron {
 	void destroy(){
 		publishMessage(TAG,"destroy()");
 		baronBrain.destroy();
-		publishMessage(TAG,"destroyED BRAIN!");
 		
-		while(true){
-			try{
-				publishMessage(TAG,"HULK SMASH!");
-				
-				baronBrainThread.join();
-				
-				publishMessage(TAG,"HULK SMASH DONE!");
-				
-			}
-			catch (InterruptedException e){}
-		}
+		baronBrainThread.interrupt();
+
 	}
 	
 	void parseIncomingMessage(byte[] message){
