@@ -13,6 +13,12 @@ public class Baron {
 
 	// Drive message label
     private static final byte COMMAND_START = -0x2; 
+    
+    // Wheel encoder message
+	private static final int WHEEL_ENCODER_LABEL = -4;
+	
+	// IR Sensor message
+	private static final int IR_SENSOR_LABEL = -3;
 
 	ArduinoControl arduinoControl;
 	BaronBrain baronBrain;		
@@ -50,8 +56,24 @@ public class Baron {
 	}
 	
 	void parseIncomingMessage(byte[] message){
-		baronBrain.odometeryMessage();
-		baronBrain.irSensorMessage();
+		
+		if(message[0] == WHEEL_ENCODER_LABEL && message.length > 2){
+			
+			boolean leftWheelCovered = (message[1] & 0x00000002) == 0;
+			boolean rightWheelCovered = (message[1] & 0x00000001) == 0;
+			
+			boolean leftWheelForward = (message[2] & 0x00000002) != 0;
+			boolean rightWheelForward = (message[2] & 0x00000001) != 0;
+			
+			baronBrain.odometeryMessage(leftWheelCovered, rightWheelCovered, leftWheelForward, rightWheelForward);
+		}
+		
+		if(message[0] == IR_SENSOR_LABEL && message.length > 5){		
+			baronBrain.irSensorMessage(IRVoltageToDistanceM(message[1]*2), IRVoltageToDistanceM(message[2]*2), 
+					IRVoltageToDistanceM(message[3]*2),	IRVoltageToDistanceM(message[4]*2), IRVoltageToDistanceM(message[5]*2));
+		}
+		
+		
 	}
 	
 	void sendDriveMessage(float linearVelocity, float angularVelocity){
@@ -115,4 +137,15 @@ public class Baron {
 		Log.e(tag, text);
 	}
 	
+	// Voltage (x) to distance (y meters) conversion
+	// 		y = a*exp(b/x+c*x) + d
+	private static final float a = 0.260450569045893f;
+	private static final float b = 46.6131389384654f;
+	private static final float c = -0.00604520178297395f;
+	private static final float d = 0.0347486769623034f;
+
+	
+	float IRVoltageToDistanceM(int voltage){
+		return a*(float)Math.exp(b/voltage+c*voltage) + d;
+	}
 }
