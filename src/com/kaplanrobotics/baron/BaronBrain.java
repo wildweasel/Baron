@@ -16,7 +16,7 @@ public class BaronBrain implements Runnable{
 	private volatile boolean paused = true;
 		
 	// Track world
-	private class BaronWorldInfo{
+	public static class BaronWorldInfo{
 		float xPos = 0;
 		float yPos = 0;
 		float theta = 0;
@@ -25,6 +25,7 @@ public class BaronBrain implements Runnable{
 		float centerDistance = 50;
 		float rightCenterDistance = 50;
 		float rightDistance = 50;
+		PointF goal = new PointF(0,0);
 	}
 	
 	// Physical Robot constants  - meters
@@ -34,18 +35,20 @@ public class BaronBrain implements Runnable{
 	private static final int WHEEL_TICKS_PER_REVOLUTION = 20;	
 	private static final float METERS_PER_TICK = 2 * piF * WHEEL_RADIUS/WHEEL_TICKS_PER_REVOLUTION;
 	
+	
 	BaronWorldInfo baronInfo;
 	
 	PointF goal;
+	
+	BehavoirType baronBehavoir;
 	
 	BaronBrain(Baron baron){
 		baron.publishMessage(TAG,"BaronBrain()");
 		this.baron = baron;
 		lastTimeMillis = System.currentTimeMillis();
 		baronInfo = new BaronWorldInfo();
-		
-		// We're fine where we're at until we hear otherwise
-		goal = new PointF(0,0);
+		baronBehavoir = BehavoirType.GO_TO_GOAL;		
+
 	}
 	
 	public void pause(){
@@ -143,40 +146,14 @@ public class BaronBrain implements Runnable{
 	
 
 	private void issueDriveCommand(){
-		// Scale to [0,1]
-		float linearVelocity = 0.5f;		
-		float angularVelocity = (goToGoal() + piF) / (2*piF);
-		baron.sendDriveMessage(linearVelocity, angularVelocity);
+		
+		baronBehavoir = BehavoirType.GO_TO_GOAL;
+		PointF command = baronBehavoir.getCommand(baronInfo);
+		
+		baron.sendDriveMessage(command.x, command.y);
 		
 		//baron.publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
 		
-	}
-	
-	// Error trackers
-	float accumulatedError = 0, previousError = 0;
-	// PID constants
-	float Kp = 1;
-	float Ki = 0.1f;
-	float Kd = 0.2f;
-	
-	private float goToGoal(){
-		// Calculate heading error
-		float headingError = baronInfo.theta - (float) Math.atan2(goal.x - baronInfo.xPos, goal.y - baronInfo.yPos);
-		//  fix to [-pi, pi] range
-		headingError = (headingError + piF) % (2 * piF) - piF;
-		
-		// PID controller for steering Angle
-		float proportionalError = headingError;
-		float integralError = accumulatedError + headingError;
-		float derivativeError = headingError - previousError;
-		
-		float outputAngle = Kp * proportionalError + Ki * integralError + Kd*derivativeError;
-		
-		// update errors
-		accumulatedError = integralError;
-		previousError = headingError;
-		
-		return outputAngle;
 	}
 
 }

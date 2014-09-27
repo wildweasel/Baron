@@ -81,9 +81,10 @@ public class Baron {
 	}
 	
 	void sendDriveMessage(float linearVelocity, float angularVelocity){
+		publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
+
 		if(arduinoControl.isBaronReady()){			
 			
-			publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
 			
 			int motorSpeeds[] = toDifferentialDrive(linearVelocity, angularVelocity);
 			byte buffer[] = toDriveMessage(motorSpeeds);			

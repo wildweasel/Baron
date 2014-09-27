@@ -3,6 +3,8 @@ package com.kaplanrobotics.baron;
 import java.lang.ref.WeakReference;
 
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,6 +23,7 @@ public class BaronActivity extends Activity {
     // UI elements
     ConsoleTextView debugConsole;
     Handler debugTextHandler;
+    Button button1;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +41,16 @@ public class BaronActivity extends Activity {
 		// Comms setup
 		sensorDataHandler = new SensorHandler(this);
 		arduinoControl = new ArduinoControl(this, sensorDataHandler);
-		baron = new Baron(arduinoControl, debugTextHandler);		
+		baron = new Baron(arduinoControl, debugTextHandler);	
+		
+		// Action Button
+		button1 = (Button) findViewById(R.id.button1);
+		button1.setOnClickListener(new View.OnClickListener() {			
+			@Override
+			public void onClick(View v) {
+				button1clicked();
+			}
+		});
 	}
 
 	@Override
@@ -100,5 +112,12 @@ public class BaronActivity extends Activity {
 			}
 		}
 	}
+	
+	private void button1clicked() {
+		// For now, move the goal 1 meter 
+		baron.baronBrain.baronInfo.goal.x += 1;
+		baron.baronBrain.baronInfo.goal.y += 1;
+	}
+
 
 }
