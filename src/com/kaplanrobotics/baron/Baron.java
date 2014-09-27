@@ -55,6 +55,10 @@ public class Baron {
 
 	}
 	
+	void setGoal(float x, float y){
+		baronBrain.setGoal(x, y);
+	}
+	
 	void parseIncomingMessage(byte[] message){
 		
 		if(message[0] == WHEEL_ENCODER_LABEL && message.length > 2){
@@ -78,6 +82,9 @@ public class Baron {
 	
 	void sendDriveMessage(float linearVelocity, float angularVelocity){
 		if(arduinoControl.isBaronReady()){			
+			
+			publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
+			
 			int motorSpeeds[] = toDifferentialDrive(linearVelocity, angularVelocity);
 			byte buffer[] = toDriveMessage(motorSpeeds);			
 			arduinoControl.sendMessage(buffer);

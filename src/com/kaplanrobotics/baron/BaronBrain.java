@@ -1,10 +1,14 @@
 package com.kaplanrobotics.baron;
 
+import android.graphics.PointF;
+
 public class BaronBrain implements Runnable{
 	
 	private static final String TAG = BaronBrain.class.getSimpleName();
 
 	private final static int INSTRUCTIONS_PER_SEC = 1; 
+	
+	private final static float piF = (float) Math.PI;
 	
 	Baron baron;
 	
@@ -23,14 +27,16 @@ public class BaronBrain implements Runnable{
 		float rightDistance = 50;
 	}
 	
-	// Physical Robot constants
-	private static final float WHEEL_RADIUS = 1.0f;
-	private static final float WHEELBASE_LENGTH = 1.0f;
-	private static final int WHEEL_TICKS_PER_REVOLUTION = 5;	
-	private static final float METERS_PER_TICK = 2 * ((float)Math.PI) * WHEEL_RADIUS/WHEEL_TICKS_PER_REVOLUTION;
-	
+	// Physical Robot constants  - meters
+	private static final float WHEEL_RADIUS = 0.033f;
+	private static final float WHEELBASE_LENGTH = 0.144f;
+	// 10 spokes per wheel, each spoke ticks on and off
+	private static final int WHEEL_TICKS_PER_REVOLUTION = 20;	
+	private static final float METERS_PER_TICK = 2 * piF * WHEEL_RADIUS/WHEEL_TICKS_PER_REVOLUTION;
 	
 	BaronWorldInfo baronInfo;
+	
+	PointF goal;
 	
 	BaronBrain(Baron baron){
 		baron.publishMessage(TAG,"BaronBrain()");
@@ -38,6 +44,8 @@ public class BaronBrain implements Runnable{
 		lastTimeMillis = System.currentTimeMillis();
 		baronInfo = new BaronWorldInfo();
 		
+		// We're fine where we're at until we hear otherwise
+		goal = new PointF(0,0);
 	}
 	
 	public void pause(){
@@ -52,6 +60,11 @@ public class BaronBrain implements Runnable{
 	
 	public void destroy(){
 		baron.publishMessage(TAG,"destroy()");
+	}
+	
+	public void setGoal(float x, float y){
+		goal.x = x;
+		goal.y = y;
 	}
 	
 	boolean leftCovered = true, rightCovered = true;
@@ -119,7 +132,7 @@ public class BaronBrain implements Runnable{
 				// Where we at?
 				consumeWheelEncoderTicks();
 				
-				baron.publishMessage(TAG,"Baron at ("+baronInfo.xPos+", "+baronInfo.yPos+"), facing "+baronInfo.theta*180/Math.PI+" degrees");
+				baron.publishMessage(TAG,"Baron at ("+baronInfo.xPos+", "+baronInfo.yPos+"), facing "+baronInfo.theta*180/piF+" degrees");
 				
 				issueDriveCommand();
 				lastTimeMillis = System.currentTimeMillis();
@@ -130,12 +143,40 @@ public class BaronBrain implements Runnable{
 	
 
 	private void issueDriveCommand(){
-		float linearVelocity = 0;
-		float angularVelocity = 0;
+		// Scale to [0,1]
+		float linearVelocity = 0.5f;		
+		float angularVelocity = (goToGoal() + piF) / (2*piF);
 		baron.sendDriveMessage(linearVelocity, angularVelocity);
 		
 		//baron.publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
 		
+	}
+	
+	// Error trackers
+	float accumulatedError = 0, previousError = 0;
+	// PID constants
+	float Kp = 1;
+	float Ki = 0.1f;
+	float Kd = 0.2f;
+	
+	private float goToGoal(){
+		// Calculate heading error
+		float headingError = baronInfo.theta - (float) Math.atan2(goal.x - baronInfo.xPos, goal.y - baronInfo.yPos);
+		//  fix to [-pi, pi] range
+		headingError = (headingError + piF) % (2 * piF) - piF;
+		
+		// PID controller for steering Angle
+		float proportionalError = headingError;
+		float integralError = accumulatedError + headingError;
+		float derivativeError = headingError - previousError;
+		
+		float outputAngle = Kp * proportionalError + Ki * integralError + Kd*derivativeError;
+		
+		// update errors
+		accumulatedError = integralError;
+		previousError = headingError;
+		
+		return outputAngle;
 	}
 
 }
