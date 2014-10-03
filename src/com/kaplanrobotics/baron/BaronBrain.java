@@ -70,28 +70,16 @@ public class BaronBrain implements Runnable{
 		goal.y = y;
 	}
 	
-	boolean leftCovered = true, rightCovered = true;
 	int leftTickCount = 0, rightTickCount = 0;
 	
-	// Right now, the incoming messages gives us the state of each wheel at given interval
-	// We may need to change this to the number of state changes within a given interval
-	public void odometeryMessage(boolean leftCovered, boolean rightCovered, boolean leftPositive, boolean rightPositive) {
+	// The incoming messages gives us the number of ticks has traveled, net, in a given direction
+	public void odometeryMessage(int leftTicks, int rightTicks) {
 
-		// Remember, we should get a message on EVERY wheel encoder state change
-		if(this.leftCovered ^ leftCovered){
-			if(leftPositive)
-				leftTickCount++;
-			else
-				leftTickCount--;
-			this.leftCovered = leftCovered;
-		}
-		if(this.rightCovered ^ rightCovered){
-			if(rightPositive)
-				rightTickCount++;
-			else
-				rightTickCount--;
-			this.rightCovered = rightCovered;
-		}	
+		leftTickCount += leftTicks;
+		rightTickCount += rightTicks;
+				
+		baron.publishMessage(TAG, "left wheel moved "+leftTicks+".  right wheel moved "+rightTicks+" ticks.");
+
 	}
 	
 	private void consumeWheelEncoderTicks(){		
@@ -125,6 +113,7 @@ public class BaronBrain implements Runnable{
 		baronInfo.centerDistance = centerIR;
 		baronInfo.rightCenterDistance = rightCenterIR;
 		baronInfo.rightDistance = rightIR;
+		//baron.publishMessage(TAG, String.format(" IR message %f.2 %f.2 %f.2 %f.2 %f.2", leftIR, leftCenterIR, centerIR, rightCenterIR, rightIR));
 	}
 
 	@Override
@@ -154,6 +143,11 @@ public class BaronBrain implements Runnable{
 		
 		//baron.publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
 		
+	}
+
+	public void resetGoal() {
+		baron.publishMessage(TAG,"Reset to (0,0)");
+		baronInfo = new BaronWorldInfo();
 	}
 
 }

@@ -3,5 +3,6 @@
 
     <string name="app_name">Baron</string>
     <string name="button1_label">Do Something</string>
+    <string name="button2_label">Reset</string>
     
 </resources>

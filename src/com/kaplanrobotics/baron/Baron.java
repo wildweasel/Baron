@@ -15,10 +15,10 @@ public class Baron {
     private static final byte COMMAND_START = -0x2; 
     
     // Wheel encoder message
-	private static final int WHEEL_ENCODER_LABEL = -4;
+	private static final int WHEEL_ENCODER_LABEL = -127;
 	
 	// IR Sensor message
-	private static final int IR_SENSOR_LABEL = -3;
+	private static final int IR_SENSOR_LABEL = -126;
 
 	ArduinoControl arduinoControl;
 	BaronBrain baronBrain;		
@@ -63,13 +63,11 @@ public class Baron {
 		
 		if(message[0] == WHEEL_ENCODER_LABEL && message.length > 2){
 			
-			boolean leftWheelCovered = (message[1] & 0x00000002) == 0;
-			boolean rightWheelCovered = (message[1] & 0x00000001) == 0;
+			int leftWheelTicks = message[1];
+			int rightWheelTicks = message[2];
 			
-			boolean leftWheelForward = (message[2] & 0x00000002) != 0;
-			boolean rightWheelForward = (message[2] & 0x00000001) != 0;
-			
-			baronBrain.odometeryMessage(leftWheelCovered, rightWheelCovered, leftWheelForward, rightWheelForward);
+			baronBrain.odometeryMessage(leftWheelTicks, rightWheelTicks);
+
 		}
 		
 		if(message[0] == IR_SENSOR_LABEL && message.length > 5){		
@@ -81,7 +79,7 @@ public class Baron {
 	}
 	
 	void sendDriveMessage(float linearVelocity, float angularVelocity){
-		publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
+		//publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
 
 		if(arduinoControl.isBaronReady()){			
 			
@@ -130,8 +128,8 @@ public class Baron {
 	private byte[] toDriveMessage(int[] motorSpeeds) {
         byte[] buffer = new byte[3]; 
         buffer[0] = COMMAND_START; 
-        buffer[1] = (byte) motorSpeeds[1]; 
-		buffer[2] = (byte) motorSpeeds[2];
+        buffer[1] = (byte) motorSpeeds[0]; 
+		buffer[2] = (byte) motorSpeeds[1];
 		return buffer;
 
 	}

@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.app.Activity;
 import android.os.Bundle;
@@ -24,11 +25,13 @@ public class BaronActivity extends Activity {
     ConsoleTextView debugConsole;
     Handler debugTextHandler;
     Button button1;
+    Button button2;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_robot_brain);
+	    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		Log.e(TAG, "onCreate()");
 		
@@ -43,12 +46,20 @@ public class BaronActivity extends Activity {
 		arduinoControl = new ArduinoControl(this, sensorDataHandler);
 		baron = new Baron(arduinoControl, debugTextHandler);	
 		
-		// Action Button
+		// Action Buttons
 		button1 = (Button) findViewById(R.id.button1);
 		button1.setOnClickListener(new View.OnClickListener() {			
 			@Override
 			public void onClick(View v) {
 				button1clicked();
+			}
+		});
+		// Action Button
+		button2 = (Button) findViewById(R.id.button2);
+		button2.setOnClickListener(new View.OnClickListener() {			
+			@Override
+			public void onClick(View v) {
+				button2clicked();
 			}
 		});
 	}
@@ -107,7 +118,7 @@ public class BaronActivity extends Activity {
 			if(robotBrainActivity != null){
 				byte message[] = msg.getData().getByteArray("data");
 
-				// parse message
+				// parse message 
 				robotBrainActivity.baron.parseIncomingMessage(message);
 			}
 		}
@@ -116,8 +127,11 @@ public class BaronActivity extends Activity {
 	private void button1clicked() {
 		// For now, move the goal 1 meter 
 		baron.baronBrain.baronInfo.goal.x += 1;
-		baron.baronBrain.baronInfo.goal.y += 1;
+		//baron.baronBrain.baronInfo.goal.y += 1;
 	}
 
+	protected void button2clicked() {
+		baron.baronBrain.resetGoal();
+	}
 
 }
