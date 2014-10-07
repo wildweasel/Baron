@@ -126,8 +126,8 @@ public class BaronActivity extends Activity {
 	
 	private void button1clicked() {
 		// For now, move the goal 1 meter 
-		baron.baronBrain.baronInfo.goal.x += 1;
-		//baron.baronBrain.baronInfo.goal.y += 1;
+		//baron.baronBrain.baronInfo.goal.x += 1;
+		baron.baronBrain.baronInfo.goal.y += 1;
 	}
 
 	protected void button2clicked() {

@@ -29,13 +29,16 @@ public class GoToGoal implements BehavoirType.Behavoir {
 			
 			// PID controller for steering Angle
 			float proportionalError = headingError;
-			float integralError = accumulatedError + headingError;
-			float derivativeError = headingError - previousError;
 			
-			float angularVelocity = Kp * proportionalError + Ki * integralError + Kd*derivativeError;
+			//float integralError = accumulatedError + headingError;
+			//float derivativeError = headingError - previousError;
+			
+			float angularVelocity = Kp * proportionalError;
+			
+			//float angularVelocity = Kp * proportionalError + Ki * integralError + Kd*derivativeError;
 			
 			// update errors
-			accumulatedError = integralError;
+			//accumulatedError = integralError;
 			previousError = headingError;
 			
 			// prepare output

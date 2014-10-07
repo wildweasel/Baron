@@ -208,18 +208,20 @@ public class ArduinoControl{
 		@Override
 		public void run() {
 			int ret = 0;
-			byte buffer[] = new byte[6];
+			byte buffer[] = new byte[64];
 
 			while(ret >= 0){
 
 				// This blocks until it can read
 				try {
-					inputStream.read(buffer, 0, 6);
-					Bundle bundle = new Bundle();
-					bundle.putByteArray("data", buffer);	
-					Message message = inputHandler.obtainMessage();
-					message.setData(bundle);
-					inputHandler.sendMessage(message);
+					if(inputStream != null){
+						inputStream.read(buffer, 0, 64);
+						Bundle bundle = new Bundle();
+						bundle.putByteArray("data", buffer);	
+						Message message = inputHandler.obtainMessage();
+						message.setData(bundle);
+						inputHandler.sendMessage(message);
+					}
 					
 				} catch (IOException e) {
 	                Log.e(TAG, "read failed", e); 

@@ -84,6 +84,7 @@ public class BaronBrain implements Runnable{
 	
 	private void consumeWheelEncoderTicks(){		
 		
+		// WTF?
 		float ticks_per_rev_center = (float) (Math.ceil(WHEEL_TICKS_PER_REVOLUTION / 2) - 1);
         float adj_deltaticks_r = (rightTickCount + ticks_per_rev_center) % WHEEL_TICKS_PER_REVOLUTION - ticks_per_rev_center;
         float adj_deltaticks_l = (leftTickCount  + ticks_per_rev_center) % WHEEL_TICKS_PER_REVOLUTION - ticks_per_rev_center;           
@@ -141,7 +142,7 @@ public class BaronBrain implements Runnable{
 		
 		baron.sendDriveMessage(command.x, command.y);
 		
-		//baron.publishMessage(TAG, "Issuing Drive Command.  v = "+linearVelocity+", omega = "+angularVelocity);
+		baron.publishMessage(TAG, "Issuing Drive Command.  v = "+command.x+", omega = "+command.y);
 		
 	}
 
